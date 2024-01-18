@@ -1,35 +1,27 @@
--- Creates a stored procedure ComputeAverageWeightedScoreForUsers that
--- computes and store the average weighted score for all students.
-DROP PROCEDURE IF EXISTS ComputeAverageWeightedScoreForUsers;
-DELIMITER $$
-CREATE PROCEDURE ComputeAverageWeightedScoreForUsers ()
+-- Create a stored procedure ComputeAverageWeightedScoreForUser
+DELIMITER //
+
+CREATE PROCEDURE ComputeAverageWeightedScoreForUser(IN user_id_param INT)
 BEGIN
-    ALTER TABLE users ADD total_weighted_score INT NOT NULL;
-    ALTER TABLE users ADD total_weight INT NOT NULL;
+    DECLARE total_score FLOAT;
+    DECLARE total_weight INT;
+    DECLARE avg_weighted_score FLOAT;
 
-    UPDATE users
-        SET total_weighted_score = (
-            SELECT SUM(corrections.score * projects.weight)
-            FROM corrections
-                INNER JOIN projects
-                    ON corrections.project_id = projects.id
-            WHERE corrections.user_id = users.id
-            );
+    -- Compute total score and total weight for the user
+    SELECT SUM(c.score * p.weight), SUM(p.weight) INTO total_score, total_weight
+    FROM corrections c
+    JOIN projects p ON c.project_id = p.id
+    WHERE c.user_id = user_id_param;
 
-    UPDATE users
-        SET total_weight = (
-            SELECT SUM(projects.weight)
-                FROM corrections
-                    INNER JOIN projects
-                        ON corrections.project_id = projects.id
-                WHERE corrections.user_id = users.id
-            );
+    -- Compute average weighted score
+    IF total_weight > 0 THEN
+        SET avg_weighted_score = total_score / total_weight;
+    ELSE
+        SET avg_weighted_score = 0;
+    END IF;
 
-    UPDATE users
-        SET users.average_score = IF(users.total_weight = 0, 0, users.total_weighted_score / users.total_weight);
-    ALTER TABLE users
-        DROP COLUMN total_weighted_score;
-    ALTER TABLE users
-        DROP COLUMN total_weight;
-END $$
+    -- Update average_score in the users table
+    UPDATE users SET average_score = avg_weighted_score WHERE id = user_id_param;
+END //
+
 DELIMITER ;
