@@ -3,7 +3,14 @@
 '''
 
 
-def insert_school(mongo_collection, **kwargs):
-    """ Function that inserts a new document in a collection based on kwargs """
-    document = mongo_collection.insert_one(kwargs)
-    return document.inserted_id
+def schools_by_topic(mongo_collection, topic):
+    '''Returns the list of school having a specific topic.
+    '''
+    topic_filter = {
+        'topics': {
+            '$elemMatch': {
+                '$eq': topic,
+            },
+        },
+    }
+    return [doc for doc in mongo_collection.find(topic_filter)]
