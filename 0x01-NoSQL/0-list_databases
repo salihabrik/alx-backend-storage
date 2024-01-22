@@ -1,4 +1,2 @@
-#!/bin/bash
-# Script that lists all databases in MongoDB.
-
-echo "show databases" | mongo --quiet
+// Lists all MongoDB databases.
+show dbs;
