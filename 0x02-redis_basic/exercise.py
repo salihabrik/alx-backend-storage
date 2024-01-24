@@ -5,6 +5,7 @@ import redis
 import uuid
 from typing import Callable
 from functools import wraps
+from typing import Any, Callable, Union
 
 
 class Cache:
