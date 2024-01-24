@@ -4,6 +4,7 @@
 import redis
 import uuid
 from typing import Callable
+from functools import wraps
 
 
 class Cache:
@@ -23,4 +24,16 @@ class Cache:
         return self.get(key, fn=lambda d: d.decode("utf-8"))
 
     def get_int(self, key: str):
-        return self.get(key, fn=int)    
+        return self.get(key, fn=int)
+    
+    def count_calls(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            key = func.__qualname__
+            count_key = f"count:{key}"
+            self._redis.incr(count_key)
+            return func(self, *args, **kwargs)
+        return wrapper
+
+    @count_calls
+    def store(self, data) -> str:  
