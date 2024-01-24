@@ -20,6 +20,7 @@ def count_calls(method: Callable) -> Callable:
         return method(self, *args, **kwargs)
     return invoker
 
+
 def call_history(method: Callable) -> Callable:
     '''Tracks the call details of a method in a Cache class.
     '''
